@@ -11,6 +11,7 @@ import { Model } from 'mongoose';
 import { hashPasswordHelper } from '@/helper/util';
 import aqp from 'api-query-params';
 import mongoose from 'mongoose';
+import { CreateAuthDto } from '@/auth/dto/create-auth.dto';
 
 @Injectable()
 export class UsersService {
@@ -69,12 +70,16 @@ export class UsersService {
     return { results, totalPages };
   }
 
-  async findbyEmail(email: string) {
-    return await this.userModel.findOne({ email });
+  async findOne(id: string) {
+    const user = await this.userModel.findById(id).select('-password');
+    if (!user) {
+      throw new BadRequestException(`User with ID ${id} not found`);
+    }
+    return user;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findByEmail(email: string) {
+    return await this.userModel.findOne({ email: email });
   }
 
   async update(updateUserDto: UpdateUserDto) {
@@ -95,12 +100,33 @@ export class UsersService {
     if (mongoose.isValidObjectId(_id)) {
       const result = await this.userModel.deleteOne({ _id });
       if (result.deletedCount > 0) {
-        return { message: 'User deleted successfully' };
+        return { message: 'User removed successfully' };
       } else {
-        throw new NotFoundException(`User with id ${_id} not found`);
+        throw new NotFoundException(`User with ID ${_id} not found`);
       }
     } else {
       throw new BadRequestException('Invalid id');
     }
+  }
+
+  async handleRegister(registerDTO: CreateAuthDto) {
+    const { email, password, name } = registerDTO;
+
+    //check email
+    const isExist = await this.isEmailExist(email);
+    if (isExist) {
+      throw new BadRequestException(
+        `Email ${email} already exists. Please enter a new email`,
+      );
+    }
+
+    //hash password
+    const hashPassword = await hashPasswordHelper(password);
+    const user = await this.userModel.create({
+      name,
+      email,
+      password: hashPassword,
+    });
+    return { _id: user._id };
   }
 }
