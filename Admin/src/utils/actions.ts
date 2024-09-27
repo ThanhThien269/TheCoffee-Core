@@ -5,7 +5,7 @@ import { signIn } from "@/auth";
 export async function authenticate(email: string, password: string) {
   try {
     const r = await signIn("credentials", {
-      username: email,
+      email: email,
       password: password,
       redirect: false,
     });
@@ -24,7 +24,7 @@ export async function authenticate(email: string, password: string) {
     } else {
       return {
         error: "internal server",
-        code: 3,
+        code: 0,
       };
     }
   }
