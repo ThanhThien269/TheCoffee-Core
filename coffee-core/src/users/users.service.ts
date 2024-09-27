@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -65,6 +69,10 @@ export class UsersService {
     return { results, totalPages };
   }
 
+  async findbyEmail(email: string) {
+    return await this.userModel.findOne({ email });
+  }
+
   findOne(id: number) {
     return `This action returns a #${id} user`;
   }
@@ -85,7 +93,12 @@ export class UsersService {
   async remove(_id: string) {
     //check id
     if (mongoose.isValidObjectId(_id)) {
-      return await this.userModel.deleteOne({ _id });
+      const result = await this.userModel.deleteOne({ _id });
+      if (result.deletedCount > 0) {
+        return { message: 'User deleted successfully' };
+      } else {
+        throw new NotFoundException(`User with id ${_id} not found`);
+      }
     } else {
       throw new BadRequestException('Invalid id');
     }
