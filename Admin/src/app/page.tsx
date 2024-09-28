@@ -1,15 +1,17 @@
 'use client'
 
-import { CrownOutlined } from "@ant-design/icons"
-import { Result } from "antd"
+import { auth } from "@/auth";
+import HomePage from "@/components/layouts/home";
+import Navbar from "@/components/layouts/navbar";
+import { SessionProvider } from "next-auth/react";
+
 export default function Home() {
+ 
   return (
-    <div style={{ padding: 20 }}>
-    <Result
-        icon={<CrownOutlined />}
-        title="Home"
-    />
-</div>
+    <SessionProvider>
+      <Navbar/>
+      <HomePage/>
+      </SessionProvider>
    
   );
 }
