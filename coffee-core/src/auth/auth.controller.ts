@@ -8,14 +8,15 @@ import {
   Delete,
   UseGuards,
   Request,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CodeAuthDto, CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
-import { LocalAuthGuard } from './passport/local-auth.guard';
-import { JwtAuthGuard } from './passport/jwt-auth.guard';
+import { LocalAuthGuard } from './passport/guards/local-auth.guard';
 import { Public, ResponseMessage } from './decorator/customize';
 import { MailerService } from '@nestjs-modules/mailer';
+import { RefreshJwtAuthGuard } from './passport/guards/refresh-auth.guard';
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -31,12 +32,6 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
-  // @UseGuards(JwtAuthGuard)
-  @Get('profile')
-  @Public()
-  getProfile(@Request() req) {
-    return req.user;
-  }
   @Get('mail')
   @Public()
   testMail() {
@@ -62,5 +57,11 @@ export class AuthController {
   @Public()
   checkCode(@Body() codeAuthDto: CodeAuthDto) {
     return this.authService.checkCode(codeAuthDto);
+  }
+  @UseGuards(RefreshJwtAuthGuard)
+  @Public()
+  @Post('refresh')
+  refreshToken(@Request() req) {
+    return this.authService.refreshToken(req.user);
   }
 }
